@@ -51,5 +51,8 @@ export async function POST({ request }) {
         ]
     })
     
-    return json('5 + 4 = 9'.replaceAll(' ', '')) // json(completion.data.choices[0]?.message?.content)
+    console.log(completion.data.choices[0]?.message?.content)
+    let response = completion.data.choices[0]?.message?.content?.replaceAll(' ', '')
+
+    return json(response)
 }

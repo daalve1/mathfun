@@ -19,7 +19,7 @@ export async function POST({ request }) {
 
     const messages = [{
         role: 'system',
-        content: 'Eres una IA que devuelve una operación matemática y su resultado siempre número entero. El usuario te especifica la dificultad de la operación entre los signos `{{` y `}}`.'
+        content: 'Eres una IA que devuelve una operación matemática y su resultado siempre número entero. El usuario te especifica la dificultad de la operación entre los signos `{{` y `}}`. Debes utilizar únicamente signos matemáticos.'
     }, {
         role: 'user',
         content: `Genera una operación matemática de nivel {{${LEVEL.FACIL}}}`
@@ -48,11 +48,11 @@ export async function POST({ request }) {
                 role: 'user',
                 content: `Genera una operación matemática de nivel {{${selectedLevel}}}`
             }
-        ]
+        ],
+        max_tokens: 35
     })
     
-    console.log(completion.data.choices[0]?.message?.content)
-    let response = completion.data.choices[0]?.message?.content?.replaceAll(' ', '')
-
+    let response = completion.data.choices[0]?.message?.content
+    
     return json(response)
 }

@@ -1,25 +1,31 @@
 <script>
     import confetti from "canvas-confetti"
+    import Modal from "../components/Modal.svelte"
 
     let fetchOperation = null
     let finished = false
-    let selectedLevel
+    let selectedLevel = 'FACIL'
     let operation
     let secretNumber = null
     let userResponse = ''
+    let corrects = 0
+    let attemps = 0
+    let wrong = false
+    let showModal = false
+    let showSolution
 
     const LEVEL = [
         { 
             id: 'FACIL',
-            value: 'Fácil' 
+            value: 'EASY' 
         },
         { 
             id: 'MEDIO',
-            value: 'Medio'
+            value: 'MEDIUM'
         },
         {
             id: 'DIFICIL',
-            value: 'Difícil'   
+            value: 'DIFICULT'   
         }
     ]
 
@@ -42,17 +48,28 @@
     // Reinializa las variables del juego
     function refresh() {
         userResponse = ''
+        finished = false
+        attemps = 0
+        wrong = false
+
         start()
     }
 
     // Pinta palabra como incorrecta
     function incorrect() {
-        
+        wrong = true
+        attemps++
+
+        setTimeout(() => {
+            wrong = false
+        }, 1500)
     }
 
     // Comprueba si la operacion es correcta
     function check() {
-        if(userResponse === secretNumber) {
+        finished = userResponse === secretNumber
+
+        if(finished) {
             getConfetti()
             return 
         }
@@ -64,25 +81,39 @@
     function start() {
         fetchOperation = getOperation()
 
-        const regexDigits = /\d+/g
+        const regexOperators = /\d+|\D+/g
         let match
-        const digits = []
+        const operators = []
+        const numbers = []
 
         fetchOperation.then(res => {
-            while ((match = regexDigits.exec(res)) !== null) {
-                digits.push({
-                    digit: match[0],
+            let ocurrencies = 0
+
+            while ((match = regexOperators.exec(res)) !== null) {
+                ocurrencies++
+
+                // Obtener todos los operandos y operadores
+                operators.push({
+                    string: match[0],
                     index: match.index,
                 })
+
+                // Obtener solo numeros
+                if(match[0].match(/\d+/)) {
+                    numbers.push({
+                        number: match[0],
+                        index: ocurrencies - 1
+                    })
+                }
             }
 
-            const randomIndex = Math.floor(Math.random() * digits.length)
-            const { digit, index } = digits[randomIndex]
+            const rand = Math.floor(Math.random() * numbers.length)
+            const { number, index } = numbers[rand]
 
-            const aux = [...res]
-            secretNumber = digit
-            aux[index] = "???"
-            operation = aux
+            secretNumber = number
+            
+            operators[index].string = operators[index].string.replace(number, '???')
+            operation = operators
         })
         .catch(error => {
             console.error('Error al obtener la operacion: ', error)
@@ -90,8 +121,10 @@
     }
 
     function getConfetti() {
-        var count = 200;
-        var defaults = {
+        corrects++
+        
+        let count = 200;
+        let defaults = {
             origin: { y: 0.7 }
         }
 
@@ -124,16 +157,26 @@
             startVelocity: 45,
         })
     }
+
+    showSolution = () => {
+        userResponse = secretNumber
+    }
+
+    function changeLevel(newLevel) {
+        selectedLevel = newLevel
+        refresh()
+    }
 </script>
 
-<main>
+<div class="corrects">{corrects}</div>
+<main class={wrong ? 'shake' : ''}>
     <h1>MATHFUN</h1>
-    
-    <select bind:value={selectedLevel} on:change={() => refresh()}>
-        {#each LEVEL as { id, value }}
-            <option value={id}>{value}</option>
+
+    <div class="buttons">
+        {#each LEVEL as {id, value}}
+            <button class={`${id} ${selectedLevel == id ? 'selected' : ''}`} on:click={() => changeLevel(id)}>{value}</button>
         {/each}
-    </select>
+    </div>
 
     {#if !finished}
         {#if null != fetchOperation}
@@ -142,18 +185,20 @@
             {:then data}
                 <section>
                     {#each operation as o}
-                        {#if o === '???'}
-                            <input bind:value={userResponse}>
+                        {#if o.string === '???'}
+                            <input bind:value={userResponse} class={wrong ? 'incorrect' : ''}>
                         {:else}
-                            {o}
+                            {o.string}
                         {/if}
                     {/each}
                 </section>
-
                 {#if userResponse}
-                    <button on:click={() => check()} class="check">check</button>
+                    <button id="btnCheck" on:click={() => check()} class={`${finished ? '' : 'shake'} check`}>check</button>
                 {/if}
 
+                {#if attemps > 0}
+                    <button on:click={() => showModal = true} class="reset">solution</button>
+                {/if}
                 <button on:click={() => refresh()} class="reset">rerun</button>
             {:catch error}
                 <p>An error occurred! {error}</p>
@@ -166,6 +211,8 @@
         <h1>FINISHED</h1>
         <button on:click={() => refresh()} class="reset">rerun</button>
     {/if}
+
+    <Modal bind:showModal bind:showSolution />
 </main>
 
 <style>
@@ -184,10 +231,13 @@
         border: 2px solid #353535;
         border-radius: 6px;
         cursor: pointer;
+        margin: 0 16px;
+        position: relative;
+        top: 6px;
     }
 
     button {
-        display: block;
+        display: flex;
         margin: 1em auto;
         padding: 20px 62px;
         text-transform: uppercase;
@@ -198,12 +248,6 @@
         cursor: pointer;
     }
 
-    button:hover {
-        background-color: #3C6E71;
-        color: white;
-        border: 1px solid #353535;
-    }
-
     section {
         font-size: 3em;
         display: flex;
@@ -211,9 +255,68 @@
         justify-content: center;
     }
 
-    select {
-        margin: 0 auto;
-        display: flex;
-        
+    @keyframes shake {
+		0% {
+			transform: translateX(0px) translateY(0px);
+		}
+        20% {
+			transform: translateX(2px) translateY(-1px);
+		}
+		40% {
+			transform: translateX(-1px) translateY(1px);
+		}
+		60% {
+			transform: translateX(1px) translateY(-2px);
+		}
+		80% {
+			transform: translateX(-2px) translateY(1px);
+		}
+		100% {
+			transform: translateX(0px) translateY(0px);
+		}
+	}
+
+    .shake {
+		animation: 400ms shake 2;
+	}
+
+    .corrects {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 2em;
+    }
+
+    .incorrect {
+        border-color: red;
+    }
+
+    .buttons {
+        display: flex; 
+        flex-direction: row;
+    }
+
+    button.FACIL {
+        border: 4px solid #84a98c;
+        background-color: #84a98c;
+    }
+
+    button.MEDIO {
+        border: 4px solid #b39c08;
+        background-color: #b39c08;
+    }
+
+    button.DIFICIL {
+        border: 4px solid #ae2012;
+        background-color: #ae2012;
+    }
+
+    button.selected, button.selected:hover {
+        border: 4px solid #353535;
+    }
+
+    .reset:hover {
+        background-color: #3C6E71;
+        color: white;
     }
 </style>

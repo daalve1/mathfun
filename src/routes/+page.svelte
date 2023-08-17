@@ -252,6 +252,10 @@
         margin: 3em 0;
     }
 
+    h1 {
+        font-size: unset;
+    }
+
     .reset {
         display: block; 
         margin: 1em auto;

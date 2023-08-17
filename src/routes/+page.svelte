@@ -249,7 +249,7 @@
     .content {
         font-size: 3em;
         text-align: center;
-        margin: 3em;
+        margin: 3em 0;
     }
 
     @keyframes shake {

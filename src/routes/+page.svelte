@@ -25,7 +25,7 @@
         },
         {
             id: 'DIFICIL',
-            value: 'DIFICULT'   
+            value: 'DIFFICULT'   
         }
     ]
 
@@ -169,7 +169,7 @@
 </script>
 
 <div class="corrects">{corrects}</div>
-<main class={wrong ? 'shake' : ''}>
+<div class={wrong ? 'shake' : ''}>
     <h1>MATHFUN</h1>
 
     <div class="buttons">
@@ -178,12 +178,12 @@
         {/each}
     </div>
 
-    {#if !finished}
-        {#if null != fetchOperation}
-            {#await fetchOperation}
-                <p>Cargando...</p>
-            {:then data}
-                <section>
+    <div class="content">
+        {#if !finished}
+            {#if null != fetchOperation}
+                {#await fetchOperation}
+                    <p>Cargando...</p>
+                {:then data}
                     {#each operation as o}
                         {#if o.string === '???'}
                             <input bind:value={userResponse} class={wrong ? 'incorrect' : ''}>
@@ -191,29 +191,30 @@
                             {o.string}
                         {/if}
                     {/each}
-                </section>
-                {#if userResponse}
-                    <button id="btnCheck" on:click={() => check()} class={`${finished ? '' : 'shake'} check`}>check</button>
-                {/if}
+                    
+                    {#if userResponse}
+                        <button id="btnCheck" on:click={() => check()} class={`${finished ? '' : 'shake'} check`}>check</button>
+                    {/if}
 
-                {#if attemps > 0}
-                    <button on:click={() => showModal = true} class="reset">solution</button>
-                {/if}
-                <button on:click={() => refresh()} class="reset">rerun</button>
-            {:catch error}
-                <p>An error occurred! {error}</p>
-                <button on:click={() => refresh()} class="reset">rerun</button>
-            {/await}
+                    {#if attemps > 0}
+                        <button on:click={() => showModal = true} class="reset">solution</button>
+                    {/if}
+                    <button on:click={() => refresh()} class="reset">rerun</button>
+                {:catch error}
+                    <p>An error occurred! {error}</p>
+                    <button on:click={() => refresh()} class="reset">rerun</button>
+                {/await}
+            {:else}
+                <button on:click={() => {start()}}>START</button>
+            {/if}
         {:else}
-            <button on:click={() => {start()}}>START</button>
+            <h1>FINISHED</h1>
+            <button on:click={() => refresh()} class="reset">rerun</button>
         {/if}
-    {:else}
-        <h1>FINISHED</h1>
-        <button on:click={() => refresh()} class="reset">rerun</button>
-    {/if}
 
-    <Modal bind:showModal bind:showSolution />
-</main>
+        <Modal bind:showModal bind:showSolution />
+    </div>
+</div>
 
 <style>
     h1 {
@@ -231,28 +232,24 @@
         border: 2px solid #353535;
         border-radius: 6px;
         cursor: pointer;
-        margin: 0 16px;
+        top: -10px;
         position: relative;
-        top: 6px;
     }
 
     button {
-        display: flex;
-        margin: 1em auto;
-        padding: 20px 62px;
+        padding: 20px 0px;
         text-transform: uppercase;
         background-color: #353535;
         color: white;
-        border: 1px solid #3C6E71;
         border-radius: 6px;
         cursor: pointer;
+        width: 150px;
     }
 
-    section {
+    .content {
         font-size: 3em;
-        display: flex;
         text-align: center;
-        justify-content: center;
+        margin: 3em;
     }
 
     @keyframes shake {
@@ -294,6 +291,9 @@
     .buttons {
         display: flex; 
         flex-direction: row;
+        text-align: center;
+        justify-content: center;
+        gap: 20px;
     }
 
     button.FACIL {
@@ -311,12 +311,11 @@
         background-color: #ae2012;
     }
 
-    button.selected, button.selected:hover {
+    button.reset {
         border: 4px solid #353535;
     }
 
-    .reset:hover {
-        background-color: #3C6E71;
-        color: white;
+    button.selected, button.selected:hover {
+        border: 4px solid #353535;
     }
 </style>

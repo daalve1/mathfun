@@ -252,6 +252,11 @@
         margin: 3em 0;
     }
 
+    .reset {
+        display: block; 
+        margin: 1em auto;
+    }
+
     @keyframes shake {
 		0% {
 			transform: translateX(0px) translateY(0px);

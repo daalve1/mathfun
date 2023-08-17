@@ -193,7 +193,7 @@
                     {/each}
                     
                     {#if userResponse}
-                        <button id="btnCheck" on:click={() => check()} class={`${finished ? '' : 'shake'} check`}>check</button>
+                        <button id="btnCheck" on:click={() => check()} class={`${finished ? '' : 'shake'} reset`}>check</button>
                     {/if}
 
                     {#if attemps > 0}

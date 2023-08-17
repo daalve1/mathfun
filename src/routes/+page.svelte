@@ -253,7 +253,7 @@
     }
 
     h1 {
-        font-size: unset;
+        font-size: 40px !important;
     }
 
     .reset {
@@ -291,6 +291,11 @@
         top: 20px;
         right: 20px;
         font-size: 2em;
+        border: 4px solid red;
+        padding: 10px 20px;
+        border-radius: 6px; 
+        background-color: #fff;
+        color: red;
     }
 
     .incorrect {
